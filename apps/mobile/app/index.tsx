@@ -1,10 +1,5 @@
-import { View, Text } from 'react-native';
+import TestDb from './test-db';
 
 export default function HomeScreen() {
-  return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text>RheumaAI MVP!</Text>
-      <Text>Стартовая страница приложения</Text>
-    </View>
-  );
+  return <TestDb />;
 }
