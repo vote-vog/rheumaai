@@ -1,0 +1,15 @@
+{
+  "name": "rheumaai-api",
+  "version": "1.0.0",
+  "description": "API functions for RheumaAI",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.38.0",
+    "openai": "^4.20.1"
+  },
+  "devDependencies": {
+    "@vercel/node": "^2.9.7"
+  }
+}
