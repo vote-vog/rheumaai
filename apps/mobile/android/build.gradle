@@ -2,7 +2,7 @@
 
 buildscript {
     ext {
-        // Стабильные версии, совместимые с Expo
+        // Stable versions compatible with Expo
         buildToolsVersion = "33.0.0"
         minSdkVersion = 21
         compileSdkVersion = 33
@@ -17,9 +17,6 @@ buildscript {
     dependencies {
         classpath("com.android.tools.build:gradle:7.3.1")
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
-        
-        // Явно указываем версии экспо-плагинов для избежания конфликтов
-        classpath("org.jetbrains.kotlin:kotlin-serialization:1.6.10")
     }
 }
 
@@ -38,24 +35,10 @@ allprojects {
         }
         google()
         maven { url 'https://www.jitpack.io' }
-        
-        // Экспо репозитории
-        maven { url 'https://maven.google.com' }
-        maven { url 'https://www.jitpack.io' }
-    }
-    
-    // Отключаем нестабильные features для всех проектов
-    afterEvaluate { project ->
-        if (project.hasProperty("android")) {
-            project.android {
-                compileSdkVersion 33
-                buildToolsVersion "33.0.0"
-            }
-        }
     }
 }
 
-// Принудительно используем совместимые версии
+// Force compatible versions
 subprojects {
     afterEvaluate { project ->
         if (project.hasProperty("android")) {
