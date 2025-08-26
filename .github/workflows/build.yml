@@ -23,10 +23,14 @@ jobs:
           cd apps/mobile
           npm install
 
+      - name: Install EAS CLI
+        run: |
+          npm install -g eas-cli@latest
+
       - name: Build Android APK with EAS
         run: |
           cd apps/mobile
-          npx eas build --platform android --profile preview --non-interactive --output=./app.apk
+          eas build --platform android --profile preview --non-interactive --output=./app.apk
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
