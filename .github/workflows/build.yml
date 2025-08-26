@@ -1,4 +1,4 @@
-name: Build and Test
+name: Build APK
 
 on:
   push:
@@ -23,18 +23,18 @@ jobs:
           cd apps/mobile
           npm install
 
-      - name: Build Android APK
+      - name: Build Android APK with EAS
         run: |
           cd apps/mobile
-          npx expo prebuild --platform android
+          npx eas build --platform android --profile preview --non-interactive --output=./app.apk
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Build APK with Gradle
-        run: |
-          cd apps/mobile/android
-          ./gradlew assembleDebug
-        
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: rheumaai-apk
+          path: apps/mobile/app.apk
