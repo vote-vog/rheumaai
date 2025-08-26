@@ -23,14 +23,10 @@ jobs:
           cd apps/mobile
           npm install
 
-      - name: Generate Android project with prebuild
+      - name: Fix Gradle configuration
         run: |
-          cd apps/mobile
-          npx expo prebuild --platform android --clean
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          cd apps/mobile/android
+          ./gradlew wrapper --gradle-version 7.5.1
 
       - name: Build APK with Gradle
         run: |
