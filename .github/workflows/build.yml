@@ -23,17 +23,10 @@ jobs:
           fetch-depth: 0
           clean: true
 
-      - name: Clean workspace
-        run: |
-          find . -name "*.lock" -delete
-          find . -name "*.lockb" -delete
-          rm -rf apps/mobile/android/.gradle || true
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "18"
-          # УБИРАЕМ cache-dependency-path - он не нужен
 
       - name: Install dependencies
         run: |
@@ -50,36 +43,28 @@ jobs:
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
-      - name: Force correct Gradle version
+      - name: Apply Android configuration fixes
         run: |
           cd apps/mobile/android
-          echo "distributionBase=GRADLE_USER_HOME" > gradle/wrapper/gradle-wrapper.properties
-          echo "distributionPath=wrapper/dists" >> gradle/wrapper/gradle-wrapper.properties
-          echo "distributionUrl=https\\://services.gradle.org/distributions/gradle-7.6-all.zip" >> gradle/wrapper/gradle-wrapper.properties
-          echo "zipStoreBase=GRADLE_USER_HOME" >> gradle/wrapper/gradle-wrapper.properties
-          echo "zipStorePath=wrapper/dists" >> gradle/wrapper/gradle-wrapper.properties
-
-      - name: Kill processes before build
-        run: |
-          pkill -f "gradle" || true
-          pkill -f "java" || true
+          # Создаем необходимые конфигурационные файлы
+          echo "android.useAndroidX=true" > gradle.properties
+          echo "android.enableJetifier=true" >> gradle.properties
+          echo "org.gradle.java.installations.auto-detect=false" >> gradle.properties
+          echo "org.gradle.java.installations.auto-download=false" >> gradle.properties
+          echo "org.gradle.parallel=true" >> gradle.properties
+          echo "org.gradle.caching=true" >> gradle.properties
+          echo "org.gradle.daemon=false" >> gradle.properties
 
       - name: Build APK with retry
         run: |
           cd apps/mobile/android
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --no-build-cache --warning-mode none || \
-          (./gradlew clean && ./gradlew assembleDebug --no-daemon --no-build-cache --warning-mode none)
+          ./gradlew assembleDebug --no-daemon --no-build-cache --warning-mode none
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         timeout-minutes: 25
-
-      - name: Force cleanup after build
-        run: |
-          pkill -f "gradle" || true
-          pkill -f "java" || true
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
