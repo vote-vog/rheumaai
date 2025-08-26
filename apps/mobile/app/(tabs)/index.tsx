@@ -1,3 +1,4 @@
+// Главный экран приложения после входа
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
@@ -17,7 +18,12 @@ export default function HomeScreen() {
       </Text>
       
       <Text style={{ fontSize: 16, textAlign: 'center', marginBottom: 30, color: '#666' }}>
-        Ваш умный помощник для отслеживания здоровья
+        Для тестирования войдите в систему
+      </Text>
+
+      <Text style={{ fontSize: 14, textAlign: 'center', marginBottom: 20, color: '#888' }}>
+        Email: test@example.com
+        Password: password123
       </Text>
 
       <TouchableOpacity
