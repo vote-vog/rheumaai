@@ -35,12 +35,12 @@ jobs:
       - name: Force correct Gradle version
         run: |
           cd apps/mobile/android
-          # Принудительно устанавливаем правильную версию Gradle
-          echo "distributionBase=GRADLE_USER_HOME" > gradle-wrapper.properties
-          echo "distributionPath=wrapper/dists" >> gradle-wrapper.properties
-          echo "distributionUrl=https\\://services.gradle.org/distributions/gradle-7.5.1-all.zip" >> gradle-wrapper.properties
-          echo "zipStoreBase=GRADLE_USER_HOME" >> gradle-wrapper.properties
-          echo "zipStorePath=wrapper/dists" >> gradle-wrapper.properties
+          # ПРАВИЛЬНЫЙ путь к файлу!
+          echo "distributionBase=GRADLE_USER_HOME" > gradle/wrapper/gradle-wrapper.properties
+          echo "distributionPath=wrapper/dists" >> gradle/wrapper/gradle-wrapper.properties
+          echo "distributionUrl=https\\://services.gradle.org/distributions/gradle-7.5.1-all.zip" >> gradle/wrapper/gradle-wrapper.properties
+          echo "zipStoreBase=GRADLE_USER_HOME" >> gradle/wrapper/gradle-wrapper.properties
+          echo "zipStorePath=wrapper/dists" >> gradle/wrapper/gradle-wrapper.properties
 
       - name: Build APK with Gradle
         run: |
