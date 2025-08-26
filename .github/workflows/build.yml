@@ -30,12 +30,17 @@ jobs:
       - name: Build Android APK with EAS
         run: |
           cd apps/mobile
-          eas build --platform android --profile preview --non-interactive --output=./app.apk
+          eas build --platform android --profile preview --non-interactive --wait
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Download built APK
+        run: |
+          cd apps/mobile
+          eas build:list --platform android --profile preview --status finished --limit 1 --json | jq -r '.[0].artifacts.buildUrl' | xargs wget -O app.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
