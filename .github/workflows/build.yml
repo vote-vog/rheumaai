@@ -11,23 +11,35 @@ jobs:
     timeout-minutes: 30
 
     steps:
+      - name: Cleanup previous processes
+        run: |
+          pkill -f "gradle" || true
+          pkill -f "java" || true
+          pkill -f "node" || true
+
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          clean: true
 
-      - name: Setup Java and Node.js
+      - name: Clean workspace
+        run: |
+          find . -name "*.lock" -delete
+          find . -name "*.lockb" -delete
+          rm -rf apps/mobile/android/.gradle || true
+
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "18"
-          cache: 'npm'
-          cache-dependency-path: apps/mobile/package-lock.json
+          # УБИРАЕМ cache-dependency-path - он не нужен
 
       - name: Install dependencies
         run: |
           cd apps/mobile
-          npm ci --no-audit
-
-      - name: Setup Android environment
-        uses: android-actions/setup-android@v2
+          npm cache clean --force
+          npm install --no-audit
 
       - name: Generate Android project
         run: |
@@ -38,24 +50,45 @@ jobs:
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
-      - name: Apply compatibility fixes
+      - name: Force correct Gradle version
         run: |
           cd apps/mobile/android
-          # Копируем подготовленные фикс-файлы
-          cp ../../android-fixes/* .
-          chmod +x gradlew
+          echo "distributionBase=GRADLE_USER_HOME" > gradle/wrapper/gradle-wrapper.properties
+          echo "distributionPath=wrapper/dists" >> gradle/wrapper/gradle-wrapper.properties
+          echo "distributionUrl=https\\://services.gradle.org/distributions/gradle-7.6-all.zip" >> gradle/wrapper/gradle-wrapper.properties
+          echo "zipStoreBase=GRADLE_USER_HOME" >> gradle/wrapper/gradle-wrapper.properties
+          echo "zipStorePath=wrapper/dists" >> gradle/wrapper/gradle-wrapper.properties
 
-      - name: Build APK
+      - name: Kill processes before build
+        run: |
+          pkill -f "gradle" || true
+          pkill -f "java" || true
+
+      - name: Build APK with retry
         run: |
           cd apps/mobile/android
-          ./gradlew assembleDebug --no-daemon --no-build-cache --warning-mode none
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --no-build-cache --warning-mode none || \
+          (./gradlew clean && ./gradlew assembleDebug --no-daemon --no-build-cache --warning-mode none)
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        timeout-minutes: 25
+
+      - name: Force cleanup after build
+        run: |
+          pkill -f "gradle" || true
+          pkill -f "java" || true
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: rheumaai-apk
           path: apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Final cleanup
+        if: always()
+        run: |
+          pkill -f "gradle" || true
+          pkill -f "java" || true
