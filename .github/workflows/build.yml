@@ -23,27 +23,22 @@ jobs:
           cd apps/mobile
           npm install
 
-      - name: Install EAS CLI and jq
-        run: |
-          npm install -g eas-cli@latest
-          sudo apt-get install -y jq
-
-      - name: Initialize EAS project
-        run: |
-          cd apps/mobile
-          eas init --non-interactive --id=default
-
-      - name: Configure EAS project
+      - name: Create eas.json manually
         run: |
           cd apps/mobile
           echo '{
             "build": {
               "preview": {
                 "android": {
-                  "buildType": "apk"
+                  "buildType": "apk",
+                  "distribution": "internal"
                 }
               },
-              "production": {}
+              "production": {
+                "android": {
+                  "buildType": "apk"
+                }
+              }
             },
             "cli": {
               "appVersionSource": "remote",
@@ -51,25 +46,17 @@ jobs:
             }
           }' > eas.json
 
-      - name: Build Android APK
+      - name: Build Android APK with EAS
         run: |
           cd apps/mobile
-          eas build --platform android --profile preview --non-interactive --wait
+          npx eas-cli@latest build --platform android --profile preview --non-interactive --wait
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Download built APK
+      - name: Check build status
         run: |
           cd apps/mobile
-          BUILD_DATA=$(eas build:list --platform android --profile preview --status finished --limit 1 --json)
-          BUILD_URL=$(echo $BUILD_DATA | jq -r '.[0].artifacts.buildUrl')
-          wget -O app.apk $BUILD_URL
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: rheumaai-apk
-          path: apps/mobile/app.apk
+          npx eas-cli@latest build:list --platform android --profile preview --status finished --limit 1
