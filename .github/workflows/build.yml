@@ -23,11 +23,35 @@ jobs:
           cd apps/mobile
           npm install
 
-      - name: Install EAS CLI
+      - name: Install EAS CLI and jq
         run: |
           npm install -g eas-cli@latest
+          sudo apt-get install -y jq
 
-      - name: Build Android APK with EAS
+      - name: Initialize EAS project
+        run: |
+          cd apps/mobile
+          eas init --non-interactive --id=default
+
+      - name: Configure EAS project
+        run: |
+          cd apps/mobile
+          echo '{
+            "build": {
+              "preview": {
+                "android": {
+                  "buildType": "apk"
+                }
+              },
+              "production": {}
+            },
+            "cli": {
+              "appVersionSource": "remote",
+              "requireCommit": false
+            }
+          }' > eas.json
+
+      - name: Build Android APK
         run: |
           cd apps/mobile
           eas build --platform android --profile preview --non-interactive --wait
@@ -40,7 +64,9 @@ jobs:
       - name: Download built APK
         run: |
           cd apps/mobile
-          eas build:list --platform android --profile preview --status finished --limit 1 --json | jq -r '.[0].artifacts.buildUrl' | xargs wget -O app.apk
+          BUILD_DATA=$(eas build:list --platform android --profile preview --status finished --limit 1 --json)
+          BUILD_URL=$(echo $BUILD_DATA | jq -r '.[0].artifacts.buildUrl')
+          wget -O app.apk $BUILD_URL
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
