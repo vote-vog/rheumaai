@@ -23,23 +23,23 @@ jobs:
           cd apps/mobile
           npm install
 
-      - name: Build Android APK with prebuild
+      - name: Fix Android configuration
         run: |
-          cd apps/mobile
-          npx expo prebuild --platform android --clean
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          cd apps/mobile/android
+          chmod +x gradlew
 
       - name: Build APK with Gradle
         run: |
           cd apps/mobile/android
-          chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon
+          ./gradlew assembleDebug --no-daemon --stacktrace
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: rheumaai-apk
           path: apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk
+          
