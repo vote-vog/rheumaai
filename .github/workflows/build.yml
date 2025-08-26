@@ -1,19 +1,61 @@
-- name: Apply CRITICAL Android fixes AFTER prebuild
-  run: |
-    cd apps/mobile/android
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
     
-    # ПЕРЕЗАПИСЫВАЕМ Gradle версию на 7.6
-    echo "distributionBase=GRADLE_USER_HOME" > gradle/wrapper/gradle-wrapper.properties
-    echo "distributionPath=wrapper/dists" >> gradle/wrapper/gradle-wrapper.properties
-    echo "distributionUrl=https\\://services.gradle.org/distributions/gradle-7.6-all.zip" >> gradle/wrapper/gradle-wrapper.properties
-    echo "zipStoreBase=GRADLE_USER_HOME" >> gradle/wrapper/gradle-wrapper.properties
-    echo "zipStorePath=wrapper/dists" >> gradle/wrapper/gradle-wrapper.properties
-    
-    # ФИКСИМ hermesEnabled ошибку в app/build.gradle
-    sed -i 's/hermesEnabled/hermesEnabled.toBoolean()/g' app/build.gradle
-    
-    # Отключаем toolchain
-    echo "android.useAndroidX=true" > gradle.properties
-    echo "android.enableJetifier=true" >> gradle.properties
-    echo "org.gradle.java.installations.auto-detect=false" >> gradle.properties
-    echo "org.gradle.java.installations.auto-download=false" >> gradle.properties
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Install Expo CLI
+      run: npm install -g expo-cli
+
+    - name: Run expo prebuild
+      run: npx expo prebuild --platform android
+
+    - name: Apply CRITICAL Android fixes AFTER prebuild
+      run: |
+        cd apps/mobile/android
+        
+        # ПЕРЕЗАПИСЫВАЕМ Gradle версию на 7.6 ПОСЛЕ prebuild
+        echo "distributionBase=GRADLE_USER_HOME" > gradle/wrapper/gradle-wrapper.properties
+        echo "distributionPath=wrapper/dists" >> gradle/wrapper/gradle-wrapper.properties
+        echo "distributionUrl=https://services.gradle.org/distributions/gradle-7.6-all.zip" >> gradle/wrapper/gradle-wrapper.properties
+        echo "zipStoreBase=GRADLE_USER_HOME" >> gradle/wrapper/gradle-wrapper.properties
+        echo "zipStorePath=wrapper/dists" >> gradle/wrapper/gradle-wrapper.properties
+        
+        # ФИКСИМ `harnessEnabled` в app/build.gradle
+        sed -i 's/hennesEnabled/hennesEnabled.toBoolean()/g' app/build.gradle
+        
+        # Отключаем toolchain
+        echo "android.useAndroidX=true" > gradle.properties
+        echo "android.enableJetifie=true" >> gradle.properties
+        echo "org.gradle.java.installations.auto-detect=false" >> gradle.properties
+        echo "org.gradle.java.installations.auto-download=false" >> gradle.properties
+
+    - name: Build Android APK
+      run: |
+        cd apps/mobile/android
+        ./gradlew assembleRelease
+
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: rheumaai-apk
+        path: apps/mobile/android/app/build/outputs/apk/release/*.apk
