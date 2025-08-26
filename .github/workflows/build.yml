@@ -23,40 +23,23 @@ jobs:
           cd apps/mobile
           npm install
 
-      - name: Create eas.json manually
+      - name: Build Android APK with prebuild
         run: |
           cd apps/mobile
-          echo '{
-            "build": {
-              "preview": {
-                "android": {
-                  "buildType": "apk",
-                  "distribution": "internal"
-                }
-              },
-              "production": {
-                "android": {
-                  "buildType": "apk"
-                }
-              }
-            },
-            "cli": {
-              "appVersionSource": "remote",
-              "requireCommit": false
-            }
-          }' > eas.json
-
-      - name: Build Android APK with EAS
-        run: |
-          cd apps/mobile
-          npx eas-cli@latest build --platform android --profile preview --non-interactive --wait
+          npx expo prebuild --platform android --clean
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Check build status
+      - name: Build APK with Gradle
         run: |
-          cd apps/mobile
-          npx eas-cli@latest build:list --platform android --profile preview --status finished --limit 1
+          cd apps/mobile/android
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: rheumaai-apk
+          path: apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk
