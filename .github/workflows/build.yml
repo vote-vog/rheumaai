@@ -23,21 +23,18 @@ jobs:
           cd apps/mobile
           npm install
 
-      - name: Install EAS CLI
-        run: |
-          npm install -g eas-cli
-
       - name: Build Android APK
         run: |
           cd apps/mobile
-          eas build --platform android --profile preview --non-interactive --no-wait
+          npx expo prebuild --platform android
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Wait for build completion
+      - name: Build APK with Gradle
         run: |
-          cd apps/mobile
-          eas build:wait --platform android --profile preview --timeout 1800
+          cd apps/mobile/android
+          ./gradlew assembleDebug
+        
