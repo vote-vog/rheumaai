@@ -4,32 +4,26 @@ export default {
     slug: "rheumaai",
     version: "1.0.0",
     orientation: "portrait",
-    icon: "./assets/icon.png",
     userInterfaceStyle: "light",
     scheme: "rheumaai",
-    splash: {
-      image: "./assets/splash.png",
-      resizeMode: "contain",
-      backgroundColor: "#ffffff"
-    },
-    assetBundlePatterns: ["**/*"],
+    assetBundlePatterns: [
+      "**/*"
+    ],
     ios: {
       supportsTablet: true,
       bundleIdentifier: "com.yourcompany.rheumaai"
     },
     android: {
-      adaptiveIcon: {
-        foregroundImage: "./assets/adaptive-icon.png",
-        backgroundColor: "#ffffff"
-      },
-      package: "com.yourcompany.rheumaai"
+      package: "com.yourcompany.rheumaai",
+      // УБИРАЕМ adaptiveIcon пока нет файлов
+      adaptiveIcon: null
     },
     web: {
-      favicon: "./assets/favicon.png",
       bundler: "metro"
     },
-    plugins: ["expo-router"],
-    // УБИРАЕМ runtimeVersion и sdkVersion!
+    plugins: [
+      "expo-router"
+    ],
     extra: {
       supabaseUrl: process.env.SUPABASE_URL,
       supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
