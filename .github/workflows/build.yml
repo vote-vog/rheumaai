@@ -19,16 +19,16 @@ jobs:
       with:
         node-version: '20'
         cache: 'npm'
-        cache-dependency-path: apps/mobile/package-lock.json
+        cache-dependency-path: apps/mobile/package-lock.json  # ← ИСПРАВЛЕНО
 
     - name: Install dependencies
       run: |
-        cd apps/mobile
+        cd apps/mobile  # ← ДОБАВЛЕНО
         npm ci
 
     - name: Build with environment variables
       run: |
-        cd apps/mobile
+        cd apps/mobile  # ← ДОБАВЛЕНО
         npx expo config --type prebuild
       env:
         SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -37,5 +37,5 @@ jobs:
 
     - name: Run tests
       run: |
-        cd apps/mobile
+        cd apps/mobile  # ← ДОБАВЛЕНО
         npm test -- --passWithNoTests
