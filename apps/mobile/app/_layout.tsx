@@ -1,6 +1,5 @@
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { useEffect } from 'react';
-import { useRouter } from 'expo-router';
 import { supabase } from '@/lib/supabase';
 
 export default function RootLayout() {
@@ -10,7 +9,7 @@ export default function RootLayout() {
     // Проверяем авторизацию при запуске приложения
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        router.replace('/');
+        router.replace('/(tabs)');
       } else {
         router.replace('/auth/login');
       }
@@ -21,7 +20,7 @@ export default function RootLayout() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
-        router.replace('/');
+        router.replace('/(tabs)');
       } else {
         router.replace('/auth/login');
       }
@@ -34,7 +33,7 @@ export default function RootLayout() {
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="auth/login" />
       <Stack.Screen name="auth/register" />
-      <Stack.Screen name="index" />
+      <Stack.Screen name="(tabs)" />
     </Stack>
   );
 }
