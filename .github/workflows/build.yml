@@ -23,7 +23,7 @@ jobs:
     - name: Install dependencies
       run: |
         cd apps/mobile
-        npm ci
+        npm install
 
     - name: Build with environment variables
       run: |
