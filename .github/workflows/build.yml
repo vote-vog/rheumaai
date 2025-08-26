@@ -2,39 +2,42 @@ name: Build and Test
 
 on:
   push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
 
-    - name: Install dependencies
-      run: |
-        cd apps/mobile
-        npm install
+      - name: Install dependencies
+        run: |
+          cd apps/mobile
+          npm install
 
-    - name: Build with environment variables
-      run: |
-        cd apps/mobile
-        npx expo config --type prebuild
-      env:
-        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-        SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      - name: Install EAS CLI
+        run: |
+          npm install -g eas-cli
 
-    # УБИРАЕМ шаг с тестами - их пока нет
-    # - name: Run tests
-    #   run: |
-    #     cd apps/mobile
-    #     npm test -- --passWithNoTests
+      - name: Build Android APK
+        run: |
+          cd apps/mobile
+          eas build --platform android --profile preview --non-interactive --no-wait
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Wait for build completion
+        run: |
+          cd apps/mobile
+          eas build:wait --platform android --profile preview --timeout 1800
