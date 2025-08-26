@@ -8,44 +8,47 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Java and Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "18"
+          cache: 'npm'
+          cache-dependency-path: apps/mobile/package-lock.json
 
       - name: Install dependencies
         run: |
           cd apps/mobile
-          npm install
+          npm ci --no-audit
 
-      - name: Generate Android project with prebuild
+      - name: Setup Android environment
+        uses: android-actions/setup-android@v2
+
+      - name: Generate Android project
         run: |
           cd apps/mobile
-          npx expo prebuild --platform android --clean
+          npx expo prebuild --platform android --clean --no-install
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
-      - name: Fix Android configuration
+      - name: Apply compatibility fixes
         run: |
           cd apps/mobile/android
-          # Отключаем toolchain
-          echo "android.useAndroidX=true" > gradle.properties
-          echo "android.enableJetifier=true" >> gradle.properties
-          echo "org.gradle.java.installations.auto-detect=false" >> gradle.properties
-          echo "org.gradle.java.installations.auto-download=false" >> gradle.properties
-
-      - name: Build APK with Gradle
-        run: |
-          cd apps/mobile/android
+          # Копируем подготовленные фикс-файлы
+          cp ../../android-fixes/* .
           chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --stacktrace
+
+      - name: Build APK
+        run: |
+          cd apps/mobile/android
+          ./gradlew assembleDebug --no-daemon --no-build-cache --warning-mode none
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
