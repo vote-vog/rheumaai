@@ -23,11 +23,14 @@ jobs:
         run: npm install --legacy-peer-deps --force
         working-directory: ./apps/mobile
 
-      - name: Remove problematic assets temporarily
+      - name: Create valid minimal PNG assets
         run: |
           mkdir -p assets
-          rm -f assets/*.png assets/*.jpg assets/*.jpeg
-          echo "Минимальные assets созданы" > assets/placeholder.txt
+          # Создаем минимальные валидные PNG файлы (1x1 пиксель)
+          echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" | base64 -d > assets/icon.png
+          echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" | base64 -d > assets/adaptive-icon.png
+          echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" | base64 -d > assets/splash.png
+          echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" | base64 -d > assets/favicon.png
         working-directory: ./apps/mobile
 
       - name: Create Android project with prebuild
@@ -46,3 +49,6 @@ jobs:
         with:
           name: rheumaai-debug-apk
           path: apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Show success message
+        run: echo "✅ Build completed successfully! APK is available in Artifacts"
