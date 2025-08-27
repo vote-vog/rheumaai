@@ -18,14 +18,19 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18.x
+          cache: 'npm'
+          cache-dependency-path: apps/mobile/package-lock.json
+
+      - name: Install EAS CLI globally
+        run: npm install -g eas-cli
 
       - name: Install dependencies
-        run: npm install --legacy-peer-deps --force
+        run: npm ci --legacy-peer-deps
         working-directory: ./apps/mobile
 
       - name: Build APK with EAS
-        run: npx eas build --platform android --non-interactive --no-wait
-        working-directory: ./apps/mobile  # ← ИСПРАВЛЕНИЕ ЗДЕСЬ!
+        run: eas build --platform android --non-interactive --no-wait
+        working-directory: ./apps/mobile
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
