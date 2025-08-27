@@ -27,25 +27,37 @@ jobs:
           cd apps/mobile
           npm install --legacy-peer-deps --force
 
-      - name: Update app config for EAS
+      - name: Create EAS config file
         run: |
           cd apps/mobile
-          # Добавляем owner и удаляем ручной projectId
-          
-          # Добавляем owner если нет
-          if ! grep -q '"owner":' app.config.js; then
-            sed -i '/"slug": "rheumaai",/a \    "owner": "vote-vog",' app.config.js
-            echo "✅ Added owner to app.config.js"
-          fi
-          
-          # Удаляем ручной projectId из extra
-          sed -i '/eas: {/,/}/d' app.config.js
-          echo "✅ Removed manual projectId from app.config.js"
+          cat > eas.json << EOF
+          {
+            "build": {
+              "preview": {
+                "android": {
+                  "buildType": "apk",
+                  "env": {
+                    "SUPABASE_URL": "$SUPABASE_URL",
+                    "SUPABASE_ANON_KEY": "$SUPABASE_ANON_KEY"
+                  }
+                }
+              },
+              "production": {
+                "android": {
+                  "buildType": "apk",
+                  "env": {
+                    "SUPABASE_URL": "$SUPABASE_URL",
+                    "SUPABASE_ANON_KEY": "$SUPABASE_ANON_KEY"
+                  }
+                }
+              }
+            }
+          }
+          EOF
 
-      - name: Skip EAS init and build directly
+      - name: Build APK with EAS
         run: |
           cd apps/mobile
-          # Пропускаем init и сразу собираем - проект уже настроен
           npx eas build --platform android --non-interactive --no-wait
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
