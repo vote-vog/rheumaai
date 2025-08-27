@@ -20,15 +20,13 @@ jobs:
           node-version: 18.x
 
       - name: Install dependencies
-        run: |
-          cd apps/mobile
-          npm install --legacy-peer-deps --force
+        run: npm install --legacy-peer-deps --force
+        working-directory: ./apps/mobile  # ← ИСПРАВЛЕНО!
 
       - name: Build APK with EAS
-        run: |
-          cd apps/mobile
-          npx eas build --platform android --non-interactive --no-wait
+        run: npx eas build --platform android --non-interactive --no-wait
+        working-directory: ./apps/mobile  # ← ИСПРАВЛЕНО!
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_ONON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
