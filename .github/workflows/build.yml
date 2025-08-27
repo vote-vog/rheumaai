@@ -1,18 +1,15 @@
-- name: Create Android project with prebuild
-  run: npx expo prebuild --platform android --clean --no-install
-  working-directory: ./apps/mobile
+name: Build Debug APK
 
-- name: Create React Native bundle
-  run: |
-    npx react-native bundle --platform android --dev false \
-      --entry-file index.js \
-      --bundle-output android/app/src/main/assets/index.android.bundle \
-      --assets-dest android/app/src/main/res/
-  working-directory: ./apps/mobile
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
 
-- name: Build Debug APK
-  run: |
-    cd android
-    chmod +x gradlew
-    ./gradlew assembleDebug --no-daemon --warning-mode none
-  working-directory: ./apps/mobile
+jobs:
+  build:
+    name: Build Debug Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
