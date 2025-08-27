@@ -23,12 +23,19 @@ jobs:
         run: npm install --legacy-peer-deps --force
         working-directory: ./apps/mobile
 
-      - name: Prebuild Android project
-        run: npx expo prebuild --platform android --clean
+      - name: Create minimal assets to avoid image processing errors
+        run: |
+          # Создаем минимальные PNG файлы (1x1 pixel transparent)
+          mkdir -p assets
+          echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" | base64 -d > assets/icon.png
+          echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" | base64 -d > assets/adaptive-icon.png
+          echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" | base64 -d > assets/splash.png
+          echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" | base64 -d > assets/favicon.png
         working-directory: ./apps/mobile
 
-      - name: Build Debug APK
+      - name: Build Android project
         run: |
+          # Собираем напрямую через React Native Gradle
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon --warning-mode none
@@ -39,3 +46,9 @@ jobs:
         with:
           name: rheumaai-debug-apk
           path: apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Show build info
+        run: |
+          echo "Build completed!"
+          echo "APK should be available in Artifacts section"
+        working-directory: ./apps/mobile
