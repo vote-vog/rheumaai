@@ -2,6 +2,7 @@ export default {
   expo: {
     name: "RheumaAI",
     slug: "rheumaai",
+    owner: "vote-vog",  // ← ДОБАВИТЬ ЭТУ СТРОЧКУ
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/icon.png",
@@ -28,9 +29,7 @@ export default {
     plugins: ["expo-router"],
     scheme: "rheumaai",
     extra: {
-      eas: {
-        projectId: "d5601a8f-e0e8-4117-a7a8-701021f929c1"  // ← ПРАВИЛЬНЫЙ UUID!
-      },
+      // УБРАТЬ блок eas: { projectId: ... } отсюда
       supabaseUrl: process.env.SUPABASE_URL,
       supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
       router: {
