@@ -21,12 +21,12 @@ jobs:
 
       - name: Install dependencies
         run: npm install --legacy-peer-deps --force
-        working-directory: ./apps/mobile  # ← ИСПРАВЛЕНО!
+        working-directory: ./apps/mobile
 
       - name: Build APK with EAS
         run: npx eas build --platform android --non-interactive --no-wait
-        working-directory: ./apps/mobile  # ← ИСПРАВЛЕНО!
+        working-directory: ./apps/mobile  # ← ИСПРАВЛЕНИЕ ЗДЕСЬ!
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ONON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
