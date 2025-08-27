@@ -23,6 +23,33 @@ jobs:
         run: npm install --legacy-peer-deps --force
         working-directory: ./apps/mobile
 
+      - name: Check project structure
+        run: |
+          echo "Project structure:"
+          ls -la
+          echo "Mobile folder contents:"
+          ls -la apps/mobile/
+          echo "Checking for index.js:"
+          if [ -f "index.js" ]; then
+            echo "✓ index.js exists"
+          else
+            echo "✗ index.js not found, will create"
+          fi
+        working-directory: ./apps/mobile
+
+      - name: Create index.js if missing
+        run: |
+          if [ ! -f "index.js" ]; then
+            echo "Creating index.js..."
+            echo "import { registerRootComponent } from 'expo';" > index.js
+            echo "import App from './App';" >> index.js
+            echo "registerRootComponent(App);" >> index.js
+            echo "✓ index.js created"
+          else
+            echo "✓ index.js already exists"
+          fi
+        working-directory: ./apps/mobile
+
       - name: Create valid minimal PNG assets
         run: |
           mkdir -p assets
@@ -41,8 +68,7 @@ jobs:
           npx react-native bundle --platform android --dev false \
             --entry-file index.js \
             --bundle-output android/app/src/main/assets/index.android.bundle \
-            --assets-dest android/app/src/main/res/ \
-            --config metro.config.js
+            --assets-dest android/app/src/main/res/
         working-directory: ./apps/mobile
 
       - name: Build Debug APK
