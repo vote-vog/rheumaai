@@ -27,23 +27,36 @@ jobs:
         run: |
           find . -name "*.lock" -delete
           find . -name "*.lockb" -delete
+          rm -rf node_modules || true
+          rm -rf apps/mobile/node_modules || true
           rm -rf apps/mobile/android/.gradle || true
+          rm -rf ~/.npm || true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "18"
+          cache: 'npm'
+          cache-dependency-path: apps/mobile/package-lock.json
 
-      - name: Install dependencies
+      - name: Install dependencies with clean install
+        run: |
+          # ЧИСТАЯ установка зависимостей
+          cd apps/mobile
+          rm -rf node_modules package-lock.json
+          npm cache clean --force
+          npm install --no-audit --legacy-peer-deps --prefer-offline
+
+      - name: Fix AJV module issue
         run: |
           cd apps/mobile
-          npm cache clean --force
-          npm install --no-audit --legacy-peer-deps
+          npm install ajv@^8.12.0 --save-dev --legacy-peer-deps
+          npm install ajv-keywords@^5.1.0 --save-dev --legacy-peer-deps
 
       - name: Generate Android project
         run: |
           cd apps/mobile
-          npx expo prebuild --platform android --clean --no-install
+          npx expo prebuild --platform android --clean
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
@@ -58,7 +71,6 @@ jobs:
           echo "zipStoreBase=GRADLE_USER_HOME" >> gradle/wrapper/gradle-wrapper.properties
           echo "zipStorePath=wrapper/dists" >> gradle/wrapper/gradle-wrapper.properties
 
-          # КРИТИЧЕСКИЕ ФИКСЫ ДЛЯ ANDROID
           echo "android.useAndroidX=true" > gradle.properties
           echo "android.enableJetifier=true" >> gradle.properties
           echo "org.gradle.java.installations.auto-detect=false" >> gradle.properties
@@ -69,30 +81,16 @@ jobs:
           cd apps/mobile/android
           sed -i 's/hennesEnabled/hennesEnabled.toBoolean()/g' app/build.gradle
 
-      - name: Kill processes before build
-        run: |
-          pkill -f "gradle" || true
-          pkill -f "java" || true
-
       - name: Build APK with retry
         run: |
           cd apps/mobile/android
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon --no-build-cache --warning-mode none --stacktrace || \
           (sleep 10 && ./gradlew clean && ./gradlew assembleRelease --no-daemon --no-build-cache --warning-mode none --stacktrace)
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         timeout-minutes: 25
 
-      - name: Force cleanup after build
-        run: |
-          pkill -f "gradle" || true
-          pkill -f "java" || true
-
-      - name: Upload APK (FIXED VERSION)
-        uses: actions/upload-artifact@v4  # ← ИСПРАВЛЕНО НА v4
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
         with:
           name: rheumaai-apk
           path: apps/mobile/android/app/build/outputs/apk/release/*.apk
