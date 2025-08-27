@@ -1,4 +1,4 @@
-name: Build APK with Expo
+name: Build Debug APK
 
 on:
   push:
@@ -7,7 +7,9 @@ on:
 
 jobs:
   build:
+    name: Build Debug Android APK
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,11 +23,19 @@ jobs:
         run: npm install --legacy-peer-deps --force
         working-directory: ./apps/mobile
 
-      - name: Build Android APK with Expo
-        run: |
-          npx expo build:android --non-interactive \
-          --type apk \
-          --release-channel production
+      - name: Prebuild Android project
+        run: npx expo prebuild --platform android --clean
         working-directory: ./apps/mobile
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build Debug APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --warning-mode none
+        working-directory: ./apps/mobile
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rheumaai-debug-apk
+          path: apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk
