@@ -1,9 +1,4 @@
 {
-  "cli": {
-    "appVersionSource": "remote",
-    "promptToConfigurePushNotifications": false,
-    "requireCommit": false
-  },
   "build": {
     "preview": {
       "android": {
@@ -23,8 +18,5 @@
         }
       }
     }
-  },
-  "submit": {
-    "production": {}
   }
 }
