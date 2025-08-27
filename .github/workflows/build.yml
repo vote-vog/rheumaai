@@ -27,7 +27,7 @@ jobs:
           cd apps/mobile
           npm install --legacy-peer-deps --force
 
-      - name: Create EAS config file
+      - name: Create EAS config with placeholders
         run: |
           cd apps/mobile
           cat > eas.json << EOF
@@ -37,8 +37,8 @@ jobs:
                 "android": {
                   "buildType": "apk",
                   "env": {
-                    "SUPABASE_URL": "$SUPABASE_URL",
-                    "SUPABASE_ANON_KEY": "$SUPABASE_ANON_KEY"
+                    "SUPABASE_URL": "https://example.supabase.co",
+                    "SUPABASE_ANON_KEY": "example-anon-key"
                   }
                 }
               },
@@ -46,8 +46,8 @@ jobs:
                 "android": {
                   "buildType": "apk",
                   "env": {
-                    "SUPABASE_URL": "$SUPABASE_URL",
-                    "SUPABASE_ANON_KEY": "$SUPABASE_ANON_KEY"
+                    "SUPABASE_URL": "https://example.supabase.co",
+                    "SUPABASE_ANON_KEY": "example-anon-key"
                   }
                 }
               }
