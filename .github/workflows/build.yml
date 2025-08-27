@@ -26,6 +26,7 @@ jobs:
       - name: Create valid minimal PNG assets
         run: |
           mkdir -p assets
+          # Создаем минимальные валидные PNG файлы (1x1 пиксель)
           echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" | base64 -d > assets/icon.png
           echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" | base64 -d > assets/adaptive-icon.png
           echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" | base64 -d > assets/splash.png
@@ -34,14 +35,6 @@ jobs:
 
       - name: Create Android project with prebuild
         run: npx expo prebuild --platform android --clean --no-install
-        working-directory: ./apps/mobile
-
-      - name: Create React Native bundle
-        run: |
-          npx react-native bundle --platform android --dev false \
-            --entry-file index.js \
-            --bundle-output android/app/src/main/assets/index.android.bundle \
-            --assets-dest android/app/src/main/res/
         working-directory: ./apps/mobile
 
       - name: Build Debug APK
@@ -56,3 +49,6 @@ jobs:
         with:
           name: rheumaai-debug-apk
           path: apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Show success message
+        run: echo "✅ Build completed successfully! APK is available in Artifacts"
