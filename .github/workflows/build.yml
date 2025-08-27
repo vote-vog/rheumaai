@@ -36,12 +36,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "18"
-          cache: 'npm'
-          cache-dependency-path: apps/mobile/package-lock.json
+          # УБИРАЕМ cache - он вызывает ошибку
 
       - name: Install dependencies with clean install
         run: |
-          # ЧИСТАЯ установка зависимостей
           cd apps/mobile
           rm -rf node_modules package-lock.json
           npm cache clean --force
