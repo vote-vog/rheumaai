@@ -1,10 +1,30 @@
 {
+  "cli": {
+    "appVersionSource": "remote",
+    "promptToConfigurePushNotifications": false,
+    "requireCommit": false
+  },
   "build": {
     "preview": {
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "env": {
+          "SUPABASE_URL": "$SUPABASE_URL",
+          "SUPABASE_ANON_KEY": "$SUPABASE_ANON_KEY"
+        }
       }
     },
+    "production": {
+      "android": {
+        "buildType": "apk",
+        "env": {
+          "SUPABASE_URL": "$SUPABASE_URL", 
+          "SUPABASE_ANON_KEY": "$SUPABASE_ANON_KEY"
+        }
+      }
+    }
+  },
+  "submit": {
     "production": {}
   }
 }
