@@ -2,71 +2,103 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-
-env:
-  EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-  SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-  SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+    branches: [main]
+  workflow_dispatch:
 
 jobs:
   build-android:
     runs-on: ubuntu-latest
-    
+    timeout-minutes: 30
+
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Cleanup previous processes
+        run: |
+          pkill -f "gradle" || true
+          pkill -f "java" || true
+          pkill -f "node" || true
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '18'
-        cache: 'npm'
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          clean: true
 
-    - name: Install dependencies
-      run: npm install
+      - name: Clean workspace
+        run: |
+          find . -name "*.lock" -delete
+          find . -name "*.lockb" -delete
+          rm -rf apps/mobile/android/.gradle || true
 
-    - name: Install Expo CLI
-      run: npm install -g expo-cli
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
 
-    - name: Setup environment variables
-      run: |
-        echo "EXPO_TOKEN=$EXPO_TOKEN" >> $GITHUB_ENV
-        echo "SUPABASE_URL=$SUPABASE_URL" >> $GITHUB_ENV
-        echo "SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" >> $GITHUB_ENV
+      - name: Install dependencies
+        run: |
+          cd apps/mobile
+          npm cache clean --force
+          npm install --no-audit --legacy-peer-deps
 
-    - name: Run expo prebuild
-      run: npx expo prebuild --platform android
+      - name: Generate Android project
+        run: |
+          cd apps/mobile
+          npx expo prebuild --platform android --clean --no-install
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
 
-    - name: Apply CRITICAL Android fixes AFTER prebuild
-      run: |
-        cd apps/mobile/android
-        
-        # ПЕРЕЗАПИСЫВАЕМ Gradle версию на 7.6 ПОСЛЕ prebuild
-        echo "distributionBase=GRADLE_USER_HOME" > gradle/wrapper/gradle-wrapper.properties
-        echo "distributionPath=wrapper/dists" >> gradle/wrapper/gradle-wrapper.properties
-        echo "distributionUrl=https://services.gradle.org/distributions/gradle-7.6-all.zip" >> gradle/wrapper/gradle-wrapper.properties
-        echo "zipStoreBase=GRADLE_USER_HOME" >> gradle/wrapper/gradle-wrapper.properties
-        echo "zipStorePath=wrapper/dists" >> gradle/wrapper/gradle-wrapper.properties
-        
-        # ФИКСИМ `harnessEnabled` в app/build.gradle
-        sed -i 's/hennesEnabled/hennesEnabled.toBoolean()/g' app/build.gradle
-        
-        # Отключаем toolchain
-        echo "android.useAndroidX=true" > gradle.properties
-        echo "android.enableJetifie=true" >> gradle.properties
-        echo "org.gradle.java.installations.auto-detect=false" >> gradle.properties
-        echo "org.gradle.java.installations.auto-download=false" >> gradle.properties
+      - name: Force correct Gradle version
+        run: |
+          cd apps/mobile/android
+          echo "distributionBase=GRADLE_USER_HOME" > gradle/wrapper/gradle-wrapper.properties
+          echo "distributionPath=wrapper/dists" >> gradle/wrapper/gradle-wrapper.properties
+          echo "distributionUrl=https\\://services.gradle.org/distributions/gradle-7.6-all.zip" >> gradle/wrapper/gradle-wrapper.properties
+          echo "zipStoreBase=GRADLE_USER_HOME" >> gradle/wrapper/gradle-wrapper.properties
+          echo "zipStorePath=wrapper/dists" >> gradle/wrapper/gradle-wrapper.properties
 
-    - name: Build Android APK
-      run: |
-        cd apps/mobile/android
-        ./gradlew assembleRelease
+          # КРИТИЧЕСКИЕ ФИКСЫ ДЛЯ ANDROID
+          echo "android.useAndroidX=true" > gradle.properties
+          echo "android.enableJetifier=true" >> gradle.properties
+          echo "org.gradle.java.installations.auto-detect=false" >> gradle.properties
+          echo "org.gradle.java.installations.auto-download=false" >> gradle.properties
 
-    - name: Upload APK artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: rheumaai-apk
-        path: apps/mobile/android/app/build/outputs/apk/release/*.apk
+      - name: Fix harnessEnabled in build.gradle
+        run: |
+          cd apps/mobile/android
+          sed -i 's/hennesEnabled/hennesEnabled.toBoolean()/g' app/build.gradle
+
+      - name: Kill processes before build
+        run: |
+          pkill -f "gradle" || true
+          pkill -f "java" || true
+
+      - name: Build APK with retry
+        run: |
+          cd apps/mobile/android
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon --no-build-cache --warning-mode none --stacktrace || \
+          (sleep 10 && ./gradlew clean && ./gradlew assembleRelease --no-daemon --no-build-cache --warning-mode none --stacktrace)
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        timeout-minutes: 25
+
+      - name: Force cleanup after build
+        run: |
+          pkill -f "gradle" || true
+          pkill -f "java" || true
+
+      - name: Upload APK (FIXED VERSION)
+        uses: actions/upload-artifact@v4  # ← ИСПРАВЛЕНО НА v4
+        with:
+          name: rheumaai-apk
+          path: apps/mobile/android/app/build/outputs/apk/release/*.apk
+
+      - name: Final cleanup
+        if: always()
+        run: |
+          pkill -f "gradle" || true
+          pkill -f "java" || true
