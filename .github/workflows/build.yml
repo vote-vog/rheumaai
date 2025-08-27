@@ -56,8 +56,10 @@ jobs:
           }
           EOF
           
-          # Инициализируем EAS проект
+          # Инициализируем EAS проект с токеном
           npx eas init --non-interactive --id rheumaai-android
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
       - name: Build APK with EAS
         run: |
