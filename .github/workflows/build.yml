@@ -19,18 +19,14 @@ jobs:
         with:
           node-version: 18.x
 
-      - name: Install EAS CLI globally
-        run: npm install -g eas-cli
-
       - name: Install dependencies
         run: |
           cd apps/mobile
           npm install --legacy-peer-deps --force
 
-      - name: Build APK with EAS (skip init)
+      - name: Build APK with EAS
         run: |
           cd apps/mobile
-          # Пропускаем init и сразу собираем - проект уже настроен в Expo dashboard
           npx eas build --platform android --non-interactive --no-wait
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
