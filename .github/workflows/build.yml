@@ -27,20 +27,10 @@ jobs:
           cd apps/mobile
           npm install --legacy-peer-deps --force
 
-      - name: Add EAS projectId to config
+      - name: Build APK with EAS (skip init)
         run: |
           cd apps/mobile
-          # Добавляем projectId в app.config.js
-          if grep -q "projectId" app.config.js; then
-            echo "✅ projectId already exists in app.config.js"
-          else
-            sed -i '/extra: {/a \      eas: {\n        projectId: "d5601a8f-e0e8-4117-a7a8-701021f929c1"\n      },' app.config.js
-            echo "✅ Added projectId to app.config.js"
-          fi
-
-      - name: Build APK with EAS
-        run: |
-          cd apps/mobile
+          # Пропускаем init и сразу собираем - проект уже настроен в Expo dashboard
           npx eas build --platform android --non-interactive --no-wait
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
