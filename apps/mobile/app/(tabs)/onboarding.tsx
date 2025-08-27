@@ -170,3 +170,23 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 });
+// Добавьте эту функцию валидации в onboarding.tsx
+const validateStep = (currentStep: number) => {
+  switch (currentStep) {
+    case 2:
+      return formData.age && formData.gender;
+    case 3:
+      return formData.diagnosisDuration && formData.morningStiffness && formData.painLevel;
+    default:
+      return true;
+  }
+};
+
+// Обновите кнопку "Далее"
+<TouchableOpacity 
+  onPress={step < 3 ? () => setStep(step + 1) : handleSave}
+  disabled={loading || !validateStep(step)}
+  style={{
+    opacity: validateStep(step) ? 1 : 0.5
+  }}
+>
