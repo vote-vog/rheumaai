@@ -27,39 +27,28 @@ jobs:
           cd apps/mobile
           npm install --legacy-peer-deps --force
 
-      - name: Add EAS projectId to config
+      - name: Remove manual projectId from config
         run: |
           cd apps/mobile
-          # Добавляем projectId в app.config.js
+          # Удаляем ручной projectId из app.config.js
           if grep -q "projectId" app.config.js; then
-            echo "✅ projectId already exists in app.config.js"
+            sed -i '/eas: {/,/}/d' app.config.js
+            echo "✅ Removed manual projectId from app.config.js"
           else
-            sed -i '/extra: {/a \      eas: {\n        projectId: "rheumaai-android"\n      },' app.config.js
-            echo "✅ Added projectId to app.config.js"
+            echo "✅ No manual projectId found in app.config.js"
           fi
+
+      - name: Clean EAS configuration
+        run: |
+          cd apps/mobile
+          # Удаляем eas.json если существует
+          rm -f eas.json
+          echo "✅ Cleaned EAS configuration"
 
       - name: Initialize EAS Project
         run: |
           cd apps/mobile
-          # Создаем временный eas.json БЕЗ env переменных для инициализации
-          cat > eas.json << EOF
-          {
-            "build": {
-              "preview": {
-                "android": {
-                  "buildType": "apk"
-                }
-              },
-              "production": {
-                "android": {
-                  "buildType": "apk"
-                }
-              }
-            }
-          }
-          EOF
-          
-          # Инициализируем EAS проект БЕЗ указания ID - пусть EAS сам создаст
+          # Инициализируем EAS проект БЕЗ указания ID
           npx eas init --non-interactive
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
@@ -67,7 +56,7 @@ jobs:
       - name: Update EAS config with environment variables
         run: |
           cd apps/mobile
-          # Обновляем eas.json с env переменными ПОСЛЕ инициализации
+          # Создаем eas.json с env переменными
           cat > eas.json << EOF
           {
             "build": {
