@@ -25,39 +25,24 @@ jobs:
 
       - name: Check project structure
         run: |
-          echo "Project structure:"
-          ls -la
           echo "Mobile folder contents:"
           ls -la apps/mobile/
           echo "Checking for index.js:"
-          if [ -f "index.js" ]; then
+          if [ -f "apps/mobile/index.js" ]; then
             echo "✓ index.js exists"
           else
-            echo "✗ index.js not found, will create"
+            echo "✗ index.js not found"
           fi
-        working-directory: ./apps/mobile
-
-      - name: Create index.js if missing
-        run: |
-          if [ ! -f "index.js" ]; then
-            echo "Creating index.js..."
-            echo "import { registerRootComponent } from 'expo';" > index.js
-            echo "import App from './App';" >> index.js
-            echo "registerRootComponent(App);" >> index.js
-            echo "✓ index.js created"
-          else
-            echo "✓ index.js already exists"
-          fi
-        working-directory: ./apps/mobile
+        working-directory: .
 
       - name: Create valid minimal PNG assets
         run: |
-          mkdir -p assets
-          echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" | base64 -d > assets/icon.png
-          echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" | base64 -d > assets/adaptive-icon.png
-          echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" | base64 -d > assets/splash.png
-          echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" | base64 -d > assets/favicon.png
-        working-directory: ./apps/mobile
+          mkdir -p apps/mobile/assets
+          echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" | base64 -d > apps/mobile/assets/icon.png
+          echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" | base64 -d > apps/mobile/assets/adaptive-icon.png
+          echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" | base64 -d > apps/mobile/assets/splash.png
+          echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" | base64 -d > apps/mobile/assets/favicon.png
+        working-directory: .
 
       - name: Create Android project with prebuild
         run: npx expo prebuild --platform android --clean --no-install
@@ -65,18 +50,19 @@ jobs:
 
       - name: Create React Native bundle
         run: |
+          cd apps/mobile
           npx react-native bundle --platform android --dev false \
             --entry-file index.js \
             --bundle-output android/app/src/main/assets/index.android.bundle \
             --assets-dest android/app/src/main/res/
-        working-directory: ./apps/mobile
+        working-directory: .
 
       - name: Build Debug APK
         run: |
-          cd android
+          cd apps/mobile/android
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon --warning-mode none
-        working-directory: ./apps/mobile
+        working-directory: .
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
