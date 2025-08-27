@@ -16,7 +16,45 @@ export default function OnboardingScreen() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  // Функция валидации шага
+  const validateStep = (currentStep: number) => {
+    switch (currentStep) {
+      case 2:
+        return formData.age && formData.gender;
+      case 3:
+        return formData.diagnosisDuration && formData.morningStiffness && formData.painLevel;
+      default:
+        return true;
+    }
+  };
+
   const handleSave = async () => {
+    // Валидация числовых полей
+    const ageValue = parseInt(formData.age);
+    const durationValue = parseInt(formData.diagnosisDuration);
+    const stiffnessValue = parseInt(formData.morningStiffness);
+    const painValue = parseInt(formData.painLevel);
+
+    if (isNaN(ageValue) || ageValue < 1 || ageValue > 120) {
+      Alert.alert('Ошибка', 'Пожалуйста, введите корректный возраст (1-120)');
+      return;
+    }
+
+    if (isNaN(durationValue) || durationValue < 0 || durationValue > 100) {
+      Alert.alert('Ошибка', 'Пожалуйста, введите корректный стаж заболевания');
+      return;
+    }
+
+    if (isNaN(stiffnessValue) || stiffnessValue < 0 || stiffnessValue > 300) {
+      Alert.alert('Ошибка', 'Пожалуйста, введите корректное время скованности (0-300 минут)');
+      return;
+    }
+
+    if (isNaN(painValue) || painValue < 0 || painValue > 10) {
+      Alert.alert('Ошибка', 'Пожалуйста, введите уровень боли от 0 до 10');
+      return;
+    }
+
     setLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -25,12 +63,12 @@ export default function OnboardingScreen() {
       const { error } = await supabase
         .from('profiles')
         .update({
-          age: parseInt(formData.age),
+          age: ageValue,
           gender: formData.gender,
           diagnosis: formData.diagnosis,
-          diagnosis_duration: parseInt(formData.diagnosisDuration),
-          morning_stiffness: parseInt(formData.morningStiffness),
-          pain_level: parseInt(formData.painLevel),
+          diagnosis_duration: durationValue,
+          morning_stiffness: stiffnessValue,
+          pain_level: painValue,
           updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
@@ -41,6 +79,7 @@ export default function OnboardingScreen() {
       router.replace('/(tabs)/chat');
 
     } catch (error) {
+      console.error('Save error:', error);
       Alert.alert('Ошибка', 'Не удалось сохранить данные');
     } finally {
       setLoading(false);
@@ -62,15 +101,17 @@ export default function OnboardingScreen() {
       <TextInput
         placeholder="Возраст *"
         value={formData.age}
-        onChangeText={(text) => setFormData({...formData, age: text})}
+        onChangeText={(text) => setFormData({...formData, age: text.replace(/[^0-9]/g, '')})}
         keyboardType="numeric"
         style={styles.input}
+        maxLength={3}
       />
       <TextInput
         placeholder="Пол (М/Ж)"
         value={formData.gender}
         onChangeText={(text) => setFormData({...formData, gender: text})}
         style={styles.input}
+        maxLength={1}
       />
     </View>
   );
@@ -81,26 +122,31 @@ export default function OnboardingScreen() {
       <TextInput
         placeholder="Стаж заболевания (лет)"
         value={formData.diagnosisDuration}
-        onChangeText={(text) => setFormData({...formData, diagnosisDuration: text})}
+        onChangeText={(text) => setFormData({...formData, diagnosisDuration: text.replace(/[^0-9]/g, '')})}
         keyboardType="numeric"
         style={styles.input}
+        maxLength={2}
       />
       <TextInput
         placeholder="Утренняя скованность (минут)"
         value={formData.morningStiffness}
-        onChangeText={(text) => setFormData({...formData, morningStiffness: text})}
+        onChangeText={(text) => setFormData({...formData, morningStiffness: text.replace(/[^0-9]/g, '')})}
         keyboardType="numeric"
         style={styles.input}
+        maxLength={3}
       />
       <TextInput
         placeholder="Уровень боли (0-10)"
         value={formData.painLevel}
-        onChangeText={(text) => setFormData({...formData, painLevel: text})}
+        onChangeText={(text) => setFormData({...formData, painLevel: text.replace(/[^0-9]/g, '')})}
         keyboardType="numeric"
         style={styles.input}
+        maxLength={2}
       />
     </View>
   );
+
+  const isStepValid = validateStep(step);
 
   return (
     <ScrollView style={styles.container}>
@@ -117,9 +163,10 @@ export default function OnboardingScreen() {
         
         <TouchableOpacity 
           onPress={step < 3 ? () => setStep(step + 1) : handleSave}
-          disabled={loading}
+          disabled={loading || !isStepValid}
+          style={[styles.nextButton, (!isStepValid || loading) && styles.nextButtonDisabled]}
         >
-          <Text style={styles.navButton}>
+          <Text style={styles.nextButtonText}>
             {loading ? 'Сохранение...' : step < 3 ? 'Далее' : 'Завершить'}
           </Text>
         </TouchableOpacity>
@@ -169,24 +216,19 @@ const styles = StyleSheet.create({
     color: '#007AFF',
     fontWeight: '600',
   },
+  nextButton: {
+    backgroundColor: '#007AFF',
+    padding: 15,
+    borderRadius: 10,
+    minWidth: 100,
+    alignItems: 'center',
+  },
+  nextButtonDisabled: {
+    backgroundColor: '#ccc',
+  },
+  nextButtonText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 16,
+  },
 });
-// Добавьте эту функцию валидации в onboarding.tsx
-const validateStep = (currentStep: number) => {
-  switch (currentStep) {
-    case 2:
-      return formData.age && formData.gender;
-    case 3:
-      return formData.diagnosisDuration && formData.morningStiffness && formData.painLevel;
-    default:
-      return true;
-  }
-};
-
-// Обновите кнопку "Далее"
-<TouchableOpacity 
-  onPress={step < 3 ? () => setStep(step + 1) : handleSave}
-  disabled={loading || !validateStep(step)}
-  style={{
-    opacity: validateStep(step) ? 1 : 0.5
-  }}
->
