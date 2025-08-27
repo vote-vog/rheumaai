@@ -27,60 +27,25 @@ jobs:
           cd apps/mobile
           npm install --legacy-peer-deps --force
 
-      - name: Add correct EAS projectId to config
+      - name: Update app config for EAS
         run: |
           cd apps/mobile
-          # Добавляем ПРАВИЛЬНЫЙ projectId в app.config.js
-          if grep -q "projectId" app.config.js; then
-            # Обновляем существующий projectId
-            sed -i 's/"projectId": *"[^"]*"/"projectId": "d5601a8f-e0e8-4117-a7a8-701021f929c1"/' app.config.js
-            echo "✅ Updated projectId in app.config.js"
-          else
-            # Добавляем новый projectId
-            sed -i '/extra: {/a \      eas: {\n        projectId: "d5601a8f-e0e8-4117-a7a8-701021f929c1"\n      },' app.config.js
-            echo "✅ Added projectId to app.config.js"
+          # Добавляем owner и удаляем ручной projectId
+          
+          # Добавляем owner если нет
+          if ! grep -q '"owner":' app.config.js; then
+            sed -i '/"slug": "rheumaai",/a \    "owner": "vote-vog",' app.config.js
+            echo "✅ Added owner to app.config.js"
           fi
+          
+          # Удаляем ручной projectId из extra
+          sed -i '/eas: {/,/}/d' app.config.js
+          echo "✅ Removed manual projectId from app.config.js"
 
-      - name: Initialize EAS Project with force
+      - name: Skip EAS init and build directly
         run: |
           cd apps/mobile
-          # Инициализируем EAS проект с force флагом
-          npx eas init --non-interactive --force
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-
-      - name: Update EAS config with environment variables
-        run: |
-          cd apps/mobile
-          # Создаем eas.json с env переменными
-          cat > eas.json << EOF
-          {
-            "build": {
-              "preview": {
-                "android": {
-                  "buildType": "apk",
-                  "env": {
-                    "SUPABASE_URL": "$SUPABASE_URL",
-                    "SUPABASE_ANON_KEY": "$SUPABASE_ANON_KEY"
-                  }
-                }
-              },
-              "production": {
-                "android": {
-                  "buildType": "apk",
-                  "env": {
-                    "SUPABASE_URL": "$SUPABASE_URL",
-                    "SUPABASE_ANON_KEY": "$SUPABASE_ANON_KEY"
-                  }
-                }
-              }
-            }
-          }
-          EOF
-
-      - name: Build APK with EAS
-        run: |
-          cd apps/mobile
+          # Пропускаем init и сразу собираем - проект уже настроен
           npx eas build --platform android --non-interactive --no-wait
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
