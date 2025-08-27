@@ -19,11 +19,8 @@ jobs:
         with:
           node-version: 18.x
 
-      - name: Setup EAS
-        uses: expo/expo-github-action@v8
-        with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
+      - name: Install EAS CLI globally
+        run: npm install -g eas-cli
 
       - name: Install dependencies
         run: |
@@ -33,17 +30,39 @@ jobs:
       - name: Initialize EAS Project
         run: |
           cd apps/mobile
-          # Создаем временный eas.json если не существует
-          if [ ! -f eas.json ]; then
-            echo '{"build": {"preview": {"android": {"buildType": "apk"}}, "production": {}}}' > eas.json
-          fi
-          # Инициализируем EAS проект в неинтерактивном режиме
+          # Создаем или обновляем eas.json
+          cat > eas.json << EOF
+          {
+            "build": {
+              "preview": {
+                "android": {
+                  "buildType": "apk",
+                  "env": {
+                    "SUPABASE_URL": "$SUPABASE_URL",
+                    "SUPABASE_ANON_KEY": "$SUPABASE_ANON_KEY"
+                  }
+                }
+              },
+              "production": {
+                "android": {
+                  "buildType": "apk",
+                  "env": {
+                    "SUPABASE_URL": "$SUPABASE_URL",
+                    "SUPABASE_ANON_KEY": "$SUPABASE_ANON_KEY"
+                  }
+                }
+              }
+            }
+          }
+          EOF
+          
+          # Инициализируем EAS проект
           npx eas init --non-interactive --id rheumaai-android
 
       - name: Build APK with EAS
         run: |
           cd apps/mobile
-          eas build --platform android --non-interactive --no-wait
+          npx eas build --platform android --non-interactive --no-wait
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
