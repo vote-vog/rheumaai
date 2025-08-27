@@ -27,29 +27,11 @@ jobs:
           cd apps/mobile
           npm install --legacy-peer-deps --force
 
-      - name: Remove manual projectId from config
+      - name: Initialize EAS Project with force
         run: |
           cd apps/mobile
-          # Удаляем ручной projectId из app.config.js
-          if grep -q "projectId" app.config.js; then
-            sed -i '/eas: {/,/}/d' app.config.js
-            echo "✅ Removed manual projectId from app.config.js"
-          else
-            echo "✅ No manual projectId found in app.config.js"
-          fi
-
-      - name: Clean EAS configuration
-        run: |
-          cd apps/mobile
-          # Удаляем eas.json если существует
-          rm -f eas.json
-          echo "✅ Cleaned EAS configuration"
-
-      - name: Initialize EAS Project
-        run: |
-          cd apps/mobile
-          # Инициализируем EAS проект БЕЗ указания ID
-          npx eas init --non-interactive
+          # Инициализируем EAS проект с force флагом
+          npx eas init --non-interactive --force
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
