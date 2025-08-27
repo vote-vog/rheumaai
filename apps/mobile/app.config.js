@@ -4,30 +4,35 @@ export default {
     slug: "rheumaai",
     version: "1.0.0",
     orientation: "portrait",
+    icon: "./assets/icon.png",
     userInterfaceStyle: "light",
-    scheme: "rheumaai",
-    assetBundlePatterns: [
-      "**/*"
-    ],
+    splash: {
+      image: "./assets/splash.png",
+      resizeMode: "contain",
+      backgroundColor: "#ffffff"
+    },
+    assetBundlePatterns: ["**/*"],
     ios: {
-      supportsTablet: true,
-      bundleIdentifier: "com.yourcompany.rheumaai"
+      supportsTablet: true
     },
     android: {
-      package: "com.yourcompany.rheumaai",
-      // УБИРАЕМ adaptiveIcon пока нет файлов
-      adaptiveIcon: null
+      adaptiveIcon: {
+        foregroundImage: "./assets/adaptive-icon.png",
+        backgroundColor: "#FFFFFF"
+      },
+      package: "com.votevog.rheumaai"
     },
     web: {
-      bundler: "metro"
+      favicon: "./assets/favicon.png"
     },
-    plugins: [
-      "expo-router"
-    ],
+    plugins: ["expo-router"],
+    scheme: "rheumaai",
     extra: {
       supabaseUrl: process.env.SUPABASE_URL,
       supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
-      openaiApiKey: process.env.OPENAI_API_KEY
+      router: {
+        origin: false
+      }
     }
   }
 };
