@@ -1,16 +1,12 @@
-const { getDefaultConfig } = require('@expo/metro-config');
-
-const config = getDefaultConfig(__dirname);
-
-// Убираем проблемный transformer
-config.transformer = {
-  ...config.transformer,
-  // babelTransformerPath: require.resolve('react-native-sass-transformer'), // УДАЛИТЬ ЭТУ СТРОКУ
+// apps/mobile/app.config.js - ПОЛНЫЙ код файла:
+export default {
+  expo: {
+    name: 'RheumaAI',
+    slug: 'rheumaai',
+    version: '1.0.0',
+    extra: {
+      supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
+      supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
+    },
+  },
 };
-
-config.resolver = {
-  ...config.resolver,
-  sourceExts: [...config.resolver.sourceExts, 'scss', 'sass'],
-};
-
-module.exports = config;
