@@ -1,5 +1,5 @@
 const handleSave = async () => {
-  // ... существующая валидация ...
+  // ... валидация ...
 
   setLoading(true);
   try {
@@ -16,24 +16,22 @@ const handleSave = async () => {
       updated_at: new Date().toISOString()
     };
 
-    console.log('Saving to Supabase:', updateData); // ← ДОБАВЬТЕ ЭТО
+    // ТЕСТОВОЕ СООБЩЕНИЕ
+    Alert.alert('Данные для сохранения', JSON.stringify(updateData, null, 2));
 
     const { error } = await supabase
       .from('profiles')
       .update(updateData)
       .eq('id', user.id);
 
-    if (error) {
-      console.error('Supabase error:', error); // ← ДОБАВЬТЕ ЭТО
-      throw error;
-    }
+    if (error) throw error;
 
-    Alert.alert('Успешно', 'Данные сохранены!');
+    Alert.alert('Успешно', 'Данные сохранены в Supabase!');
     router.replace('/(tabs)/chat');
 
   } catch (error) {
-    console.error('Save error:', error); // ← ДОБАВЬТЕ ЭТО
-    Alert.alert('Ошибка', 'Не удалось сохранить данные');
+    console.error('Save error:', error);
+    Alert.alert('Ошибка', error.message || 'Не удалось сохранить данные');
   } finally {
     setLoading(false);
   }
