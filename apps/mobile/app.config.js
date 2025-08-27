@@ -1,7 +1,8 @@
+// apps/mobile/app.config.js
 export default {
   expo: {
     name: "RheumaAI",
-    slug: "rheumaai",
+    slug: "rheumaai", 
     owner: "vote-vog",
     version: "1.0.0",
     orientation: "portrait",
@@ -32,8 +33,9 @@ export default {
       eas: {
         projectId: "d5601a8f-e0e8-4117-a7a8-701021f929c1"
       },
-      supabaseUrl: process.env.SUPABASE_URL,
-      supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
+      // ✅ БЕЗОПАСНО: Используем правильные имена для клиентских переменных
+      supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
+      supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
       router: {
         origin: false
       }
