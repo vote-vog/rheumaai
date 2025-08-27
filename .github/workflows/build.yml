@@ -59,8 +59,8 @@ jobs:
           }
           EOF
           
-          # Инициализируем EAS проект с токеном
-          npx eas init --non-interactive --id rheumaai-android
+          # Инициализируем EAS проект БЕЗ указания ID - пусть EAS сам создаст
+          npx eas init --non-interactive
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
@@ -101,4 +101,3 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-          
