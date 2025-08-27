@@ -27,6 +27,20 @@ jobs:
           cd apps/mobile
           npm install --legacy-peer-deps --force
 
+      - name: Add correct EAS projectId to config
+        run: |
+          cd apps/mobile
+          # Добавляем ПРАВИЛЬНЫЙ projectId в app.config.js
+          if grep -q "projectId" app.config.js; then
+            # Обновляем существующий projectId
+            sed -i 's/"projectId": *"[^"]*"/"projectId": "d5601a8f-e0e8-4117-a7a8-701021f929c1"/' app.config.js
+            echo "✅ Updated projectId in app.config.js"
+          else
+            # Добавляем новый projectId
+            sed -i '/extra: {/a \      eas: {\n        projectId: "d5601a8f-e0e8-4117-a7a8-701021f929c1"\n      },' app.config.js
+            echo "✅ Added projectId to app.config.js"
+          fi
+
       - name: Initialize EAS Project with force
         run: |
           cd apps/mobile
