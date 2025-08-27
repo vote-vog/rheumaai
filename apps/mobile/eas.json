@@ -1,22 +1,21 @@
 {
+  "cli": {
+    "appVersionSource": "remote",
+    "requireCommit": false
+  },
   "build": {
     "preview": {
       "android": {
-        "buildType": "apk",
-        "env": {
-          "SUPABASE_URL": "https://example.supabase.co",
-          "SUPABASE_ANON_KEY": "example-anon-key"
-        }
+        "buildType": "apk"
       }
     },
     "production": {
       "android": {
-        "buildType": "apk", 
-        "env": {
-          "SUPABASE_URL": "https://example.supabase.co",
-          "SUPABASE_ANON_KEY": "example-anon-key"
-        }
+        "buildType": "apk"
       }
     }
+  },
+  "submit": {
+    "production": {}
   }
 }
