@@ -18,15 +18,25 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18.x
-          cache: 'npm'
-          cache-dependency-path: apps/mobile/package-lock.json
+          # УБРАНО кэширование из-за ошибки пути
 
       - name: Install EAS CLI globally
         run: npm install -g eas-cli
 
       - name: Install dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm install --legacy-peer-deps --force
         working-directory: ./apps/mobile
+
+      - name: Debug - Show environment info
+        run: |
+          echo "Node version: $(node --version)"
+          echo "NPM version: $(npm --version)"
+          echo "EAS version: $(eas --version || echo 'EAS not installed')"
+          echo "Current directory: $(pwd)"
+          echo "Mobile directory contents:"
+          ls -la apps/mobile/
+          echo "NPM config cache:"
+          npm config get cache
 
       - name: Build APK with EAS
         run: eas build --platform android --non-interactive --no-wait
