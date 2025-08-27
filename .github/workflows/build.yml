@@ -30,7 +30,33 @@ jobs:
       - name: Initialize EAS Project
         run: |
           cd apps/mobile
-          # Создаем или обновляем eas.json
+          # Создаем временный eas.json БЕЗ env переменных для инициализации
+          cat > eas.json << EOF
+          {
+            "build": {
+              "preview": {
+                "android": {
+                  "buildType": "apk"
+                }
+              },
+              "production": {
+                "android": {
+                  "buildType": "apk"
+                }
+              }
+            }
+          }
+          EOF
+          
+          # Инициализируем EAS проект с токеном
+          npx eas init --non-interactive --id rheumaai-android
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Update EAS config with environment variables
+        run: |
+          cd apps/mobile
+          # Обновляем eas.json с env переменными ПОСЛЕ инициализации
           cat > eas.json << EOF
           {
             "build": {
@@ -55,11 +81,6 @@ jobs:
             }
           }
           EOF
-          
-          # Инициализируем EAS проект с токеном
-          npx eas init --non-interactive --id rheumaai-android
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
       - name: Build APK with EAS
         run: |
