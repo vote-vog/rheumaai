@@ -22,12 +22,9 @@ jobs:
       - name: Fix AJV dependencies
         run: |
           cd apps/mobile
-          # Удаляем проблемные зависимости
           npm uninstall ajv ajv-keywords --save-dev
-          # Устанавливаем совместимые версии
           npm install ajv@^8.12.0 --save-dev --legacy-peer-deps
           npm install ajv-keywords@^5.1.0 --save-dev --legacy-peer-deps
-          # Чистим кэш
           npm cache clean --force
 
       - name: Setup EAS
@@ -40,6 +37,11 @@ jobs:
         run: |
           cd apps/mobile
           npm install --legacy-peer-deps --force
+
+      - name: Configure EAS project
+        run: |
+          cd apps/mobile
+          eas init --non-interactive --id ${{ secrets.EAS_PROJECT_ID }}
 
       - name: Build APK with EAS
         run: |
