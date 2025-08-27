@@ -30,6 +30,16 @@ jobs:
           cd apps/mobile
           npm install --legacy-peer-deps --force
 
+      - name: Initialize EAS Project
+        run: |
+          cd apps/mobile
+          # Создаем временный eas.json если не существует
+          if [ ! -f eas.json ]; then
+            echo '{"build": {"preview": {"android": {"buildType": "apk"}}, "production": {}}}' > eas.json
+          fi
+          # Инициализируем EAS проект в неинтерактивном режиме
+          npx eas init --non-interactive --id rheumaai-android
+
       - name: Build APK with EAS
         run: |
           cd apps/mobile
