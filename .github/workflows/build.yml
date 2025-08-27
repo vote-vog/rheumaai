@@ -1,100 +1,27 @@
-name: Build Debug APK
-
-on:
-  push:
-    branches: [main]
-  workflow_dispatch:
-
-jobs:
-  build:
-    name: Build Debug Android APK
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18.x
-
-      - name: Install dependencies
-        run: npm install --legacy-peer-deps --force
-        working-directory: ./apps/mobile
-
-      - name: Fix metro config
-        run: |
-          echo "const { getDefaultConfig } = require('@expo/metro-config');" > apps/mobile/metro.config.js
-          echo "module.exports = getDefaultConfig(__dirname);" >> apps/mobile/metro.config.js
-        working-directory: .
-
-      - name: Check and create App.js if missing
-        run: |
-          cd apps/mobile
-          if [ ! -f "App.js" ] && [ ! -f "App.tsx" ] && [ ! -f "App.jsx" ]; then
-            echo "Creating basic App.js..."
-            cat > App.js << 'EOF'
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
-
-export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>RheumaAI App is working!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
-EOF
-          fi
-        working-directory: .
-
-      - name: Create valid minimal PNG assets
-        run: |
-          mkdir -p apps/mobile/assets
-          echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" | base64 -d > apps/mobile/assets/icon.png
-          echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" | base64 -d > apps/mobile/assets/adaptive-icon.png
-          echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" | base64 -d > apps/mobile/assets/splash.png
-        working-directory: .
-
-      - name: Create Android project with prebuild
-        run: npx expo prebuild --platform android --clean --no-install
-        working-directory: ./apps/mobile
-
-      - name: Create assets directory
-        run: |
-          cd apps/mobile
-          mkdir -p android/app/src/main/assets
-        working-directory: .
-
-      - name: Create React Native bundle
-        run: |
-          cd apps/mobile
-          npx react-native bundle --platform android --dev false \
-            --entry-file index.js \
-            --bundle-output android/app/src/main/assets/index.android.bundle \
-            --assets-dest android/app/src/main/res/
-        working-directory: .
-
-      - name: Build Debug APK
-        run: |
-          cd apps/mobile/android
-          chmod +x gradlew
-          ./gradlew assembleDebug --no-daemon --warning-mode none
-        working-directory: .
-
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: rheumaai-debug-apk
-          path: apps/mobile/android/app/build/outputs/apk/debug/app-debug.apk
+- name: Check and create App.js if missing
+  run: |
+    cd apps/mobile
+    if [ ! -f "App.js" ] && [ ! -f "App.tsx" ] && [ ! -f "App.jsx" ]; then
+      echo "Creating basic App.js..."
+      echo "import { StatusBar } from 'expo-status-bar';" > App.js
+      echo "import { StyleSheet, Text, View } from 'react-native';" >> App.js
+      echo "" >> App.js
+      echo "export default function App() {" >> App.js
+      echo "  return (" >> App.js
+      echo "    <View style={styles.container}>" >> App.js
+      echo "      <Text>RheumaAI App is working!</Text>" >> App.js
+      echo "      <StatusBar style=\"auto\" />" >> App.js
+      echo "    </View>" >> App.js
+      echo "  );" >> App.js
+      echo "}" >> App.js
+      echo "" >> App.js
+      echo "const styles = StyleSheet.create({" >> App.js
+      echo "  container: {" >> App.js
+      echo "    flex: 1," >> App.js
+      echo "    backgroundColor: '#fff'," >> App.js
+      echo "    alignItems: 'center'," >> App.js
+      echo "    justifyContent: 'center'," >> App.js
+      echo "  }," >> App.js
+      echo "});" >> App.js
+    fi
+  working-directory: .
