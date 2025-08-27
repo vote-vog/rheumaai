@@ -27,6 +27,17 @@ jobs:
           cd apps/mobile
           npm install --legacy-peer-deps --force
 
+      - name: Add EAS projectId to config
+        run: |
+          cd apps/mobile
+          # Добавляем projectId в app.config.js
+          if grep -q "projectId" app.config.js; then
+            echo "✅ projectId already exists in app.config.js"
+          else
+            sed -i '/extra: {/a \      eas: {\n        projectId: "rheumaai-android"\n      },' app.config.js
+            echo "✅ Added projectId to app.config.js"
+          fi
+
       - name: Initialize EAS Project
         run: |
           cd apps/mobile
@@ -90,3 +101,4 @@ jobs:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          
