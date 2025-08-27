@@ -48,3 +48,11 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+- name: Create placeholder assets
+  run: |
+    cd apps/mobile
+    mkdir -p assets
+    # Создаем минимальные PNG заглушки
+    echo "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==" | base64 -d > assets/icon.png
+    cp assets/icon.png assets/splash.png
+    cp assets/icon.png assets/adaptive-icon.png
