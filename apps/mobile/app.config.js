@@ -28,7 +28,9 @@ export default {
     plugins: ["expo-router"],
     scheme: "rheumaai",
     extra: {
-      // УБРАТЬ отсюда блок eas: { projectId: ... }
+      eas: {
+        projectId: "d5601a8f-e0e8-4117-a7a8-701021f929c1"  // ← ПРАВИЛЬНЫЙ UUID!
+      },
       supabaseUrl: process.env.SUPABASE_URL,
       supabaseAnonKey: process.env.SUPABASE_ANON_KEY,
       router: {
